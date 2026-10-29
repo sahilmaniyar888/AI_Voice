@@ -1,0 +1,50 @@
+{
+  "name": "register_truck",
+  "description": "Register a truck owner who called in, so they get calls for matching loads. Call only after they agree to receive calls.",
+  "pre_call_message": "Ek second, aapki gaadi register kar rahi hoon.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "Owner's name"
+      },
+      "phone": {
+        "type": "string",
+        "description": "Mobile number, digits only, 10 digits"
+      },
+      "city": {
+        "type": "string",
+        "description": "Base town"
+      },
+      "truck_type": {
+        "type": "string",
+        "description": "open body, container or trailer"
+      },
+      "capacity_tons": {
+        "type": "string",
+        "description": "Capacity in tons, digits only"
+      }
+    },
+    "required": [
+      "name",
+      "phone"
+    ]
+  },
+  "key": "custom_task",
+  "value": {
+    "method": "POST",
+    "url": "https://YOUR-PUBLIC-URL/tools/register_truck?secret=YOUR_TOOL_SECRET",
+    "api_token": null,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "param": {
+      "name": "%(name)s",
+      "phone": "%(phone)s",
+      "city": "%(city)s",
+      "truck_type": "%(truck_type)s",
+      "capacity_tons": "%(capacity_tons)s"
+    }
+  }
+}

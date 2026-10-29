@@ -1,0 +1,35 @@
+{
+  "name": "confirm_booking",
+  "description": "Book the truck the broker chose. Call only after a clear yes from the broker.",
+  "pre_call_message": "Ek second, book kar rahi hoon.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "load_id": {
+        "type": "string",
+        "description": "Exactly the load_id from your instructions"
+      },
+      "trucker_id": {
+        "type": "string",
+        "description": "trucker_id of the chosen option, e.g. T295"
+      }
+    },
+    "required": [
+      "load_id",
+      "trucker_id"
+    ]
+  },
+  "key": "custom_task",
+  "value": {
+    "method": "POST",
+    "url": "https://YOUR-PUBLIC-URL/tools/confirm_booking?secret=YOUR_TOOL_SECRET",
+    "api_token": null,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "param": {
+      "load_id": "%(load_id)s",
+      "trucker_id": "%(trucker_id)s"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "name": "post_load",
+  "description": "Post a new load after the caller confirms the read-back. Truck owners are called immediately. Returns how many truck owners are being called.",
+  "pre_call_message": "Theek hai, abhi gaadi waalon ko call lagati hoon.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "origin": {
+        "type": "string",
+        "description": "Loading town"
+      },
+      "destination": {
+        "type": "string",
+        "description": "Delivery town"
+      },
+      "material": {
+        "type": "string",
+        "description": "Goods, e.g. onion"
+      },
+      "weight_tons": {
+        "type": "string",
+        "description": "Weight in tons, digits only"
+      },
+      "truck_type": {
+        "type": "string",
+        "description": "open body, container, trailer or any"
+      },
+      "pickup_time": {
+        "type": "string",
+        "description": "When loading happens, in the caller's words"
+      },
+      "max_rate": {
+        "type": "string",
+        "description": "Highest freight the caller will pay, digits only"
+      },
+      "target_rate": {
+        "type": "string",
+        "description": "Price the caller would be happy with, digits only (optional)"
+      }
+    },
+    "required": [
+      "origin",
+      "destination",
+      "weight_tons",
+      "max_rate"
+    ]
+  },
+  "key": "custom_task",
+  "value": {
+    "method": "POST",
+    "url": "https://YOUR-PUBLIC-URL/tools/post_load?secret=YOUR_TOOL_SECRET",
+    "api_token": null,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "param": {
+      "origin": "%(origin)s",
+      "destination": "%(destination)s",
+      "material": "%(material)s",
+      "weight_tons": "%(weight_tons)s",
+      "truck_type": "%(truck_type)s",
+      "pickup_time": "%(pickup_time)s",
+      "max_rate": "%(max_rate)s",
+      "target_rate": "%(target_rate)s"
+    }
+  }
+}

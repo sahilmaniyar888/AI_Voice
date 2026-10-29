@@ -1,0 +1,75 @@
+{
+  "name": "submit_quote",
+  "description": "Save the truck owner's answer for this load. Call it exactly once per call: as soon as you know whether the truck is free and, if free, the final price after your one counter-offer. Also call it when the truck is not available.",
+  "pre_call_message": "Ek second, note kar rahi hoon.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "load_id": {
+        "type": "string",
+        "description": "Exactly the load_id from your instructions, e.g. L4821"
+      },
+      "trucker_id": {
+        "type": "string",
+        "description": "Exactly the trucker_id from your instructions, e.g. T295"
+      },
+      "available": {
+        "type": "string",
+        "enum": [
+          "yes",
+          "no"
+        ],
+        "description": "Is the truck free for this load"
+      },
+      "quoted_rate": {
+        "type": "string",
+        "description": "First price the owner asked, digits only, e.g. 33000"
+      },
+      "final_rate": {
+        "type": "string",
+        "description": "Final price after your one counter-offer, digits only, e.g. 31500"
+      },
+      "truck_location": {
+        "type": "string",
+        "description": "Where the truck is right now, e.g. Ozar"
+      },
+      "eta_hours": {
+        "type": "string",
+        "description": "Hours to reach the loading point, number only, e.g. 2"
+      },
+      "truck_number": {
+        "type": "string",
+        "description": "Vehicle registration number if given, e.g. MH15 AB 1234"
+      },
+      "notes": {
+        "type": "string",
+        "description": "Reason if not available, or anything the broker should know"
+      }
+    },
+    "required": [
+      "load_id",
+      "trucker_id",
+      "available"
+    ]
+  },
+  "key": "custom_task",
+  "value": {
+    "method": "POST",
+    "url": "https://YOUR-PUBLIC-URL/tools/submit_quote?secret=YOUR_TOOL_SECRET",
+    "api_token": null,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "param": {
+      "load_id": "%(load_id)s",
+      "trucker_id": "%(trucker_id)s",
+      "available": "%(available)s",
+      "quoted_rate": "%(quoted_rate)s",
+      "final_rate": "%(final_rate)s",
+      "truck_location": "%(truck_location)s",
+      "eta_hours": "%(eta_hours)s",
+      "truck_number": "%(truck_number)s",
+      "notes": "%(notes)s"
+    }
+  }
+}

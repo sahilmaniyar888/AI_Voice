@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bhaada — freight desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;700;800&family=Rozha+One&display=swap" rel="stylesheet">
+<style>
+  /* Tokens: painted-truck blue body, commercial number-plate yellow, bilty-paper text */
+  :root {
+    --body: #12343b;        /* diesel blue - page */
+    --panel: #194550;       /* painted panel */
+    --panel-2: #20535f;     /* raised */
+    --line: #2f6672;
+    --paper: #f3ebd3;       /* bilty paper - main text */
+    --paper-dim: #b9c7c3;
+    --plate: #f2c230;       /* commercial plate yellow - live + best */
+    --ink: #161616;         /* plate lettering */
+    --leaf: #57b863;        /* quoted */
+    --kumkum: #d0574b;      /* declined / failed */
+    --display: "Rozha One", Georgia, serif;
+    --text: "Mukta", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--body); color: var(--paper); font-family: var(--text); font-size: 16px; line-height: 1.45; }
+  button, input, select { font: inherit; }
+  :focus-visible { outline: 3px solid var(--plate); outline-offset: 2px; }
+
+  header.bar { display: flex; align-items: center; gap: 1.25rem; padding: .9rem 1.5rem; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .brand { font-family: var(--display); font-size: 2rem; line-height: 1; letter-spacing: .01em; }
+  .brand small { display: block; font-family: var(--text); font-size: .85rem; color: var(--paper-dim); letter-spacing: 0; margin-top: .2rem; }
+  .route { font-size: 1.15rem; font-weight: 700; flex: 1; min-width: 12rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .route span { color: var(--paper-dim); font-weight: 500; }
+  .mode { border-radius: 999px; padding: .2rem .8rem; font-size: .85rem; font-weight: 700; border: 1px solid var(--line); }
+  .mode.sim { background: transparent; color: var(--plate); border-color: var(--plate); }
+  .mode.live { background: var(--kumkum); color: #fff; border-color: var(--kumkum); }
+  .clock { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.6rem; min-width: 4.5ch; color: var(--plate); padding-left: 1rem; border-left: 1px solid var(--line); }
+  .ghost { background: transparent; color: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: .35rem .8rem; cursor: pointer; }
+  .ghost:hover { border-color: var(--paper-dim); }
+  select.ghost { max-width: 16rem; }
+
+  main.desk { display: grid; grid-template-columns: 300px 1fr 330px; gap: 0; min-height: calc(100vh - 70px); }
+  .col { padding: 1.25rem 1.5rem; }
+  .col + .col { border-left: 1px solid var(--line); }
+  h2 { font-family: var(--display); font-weight: 400; font-size: 1.45rem; margin: 0 0 .75rem; line-height: 1.15; }
+
+  /* Post a load */
+  form.load label { display: block; font-size: .9rem; color: var(--paper-dim); margin: .55rem 0 .15rem; }
+  form.load input, form.load select { width: 100%; background: var(--panel); border: 1px solid var(--line); color: var(--paper); border-radius: 8px; padding: .45rem .6rem; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .go { margin-top: 1rem; width: 100%; background: var(--plate); color: var(--ink); border: 0; border-radius: 10px; padding: .75rem; font-weight: 800; font-size: 1.05rem; cursor: pointer; }
+  .go:disabled { opacity: .55; cursor: progress; }
+  .hint { color: var(--paper-dim); font-size: .85rem; margin-top: .5rem; }
+
+  /* Story line instead of stat tiles */
+  .story { font-size: 1.1rem; margin: 0 0 1rem; max-width: 70ch; }
+  .story b { color: var(--plate); font-variant-numeric: tabular-nums; }
+
+  /* Call board */
+  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .8rem; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .8rem .9rem; min-height: 158px; display: flex; flex-direction: column; gap: .3rem; cursor: pointer; text-align: left; color: inherit; width: 100%; }
+  .tile:hover { border-color: var(--paper-dim); }
+  .tile .who { font-weight: 700; font-size: 1.05rem; }
+  .tile .where { color: var(--paper-dim); font-size: .85rem; }
+  .tile .state { margin-top: auto; font-weight: 700; display: flex; align-items: center; gap: .45rem; }
+  .tile .rate { font-family: var(--display); font-size: 2rem; line-height: 1; color: var(--paper); }
+  .tile .deal { font-size: .85rem; color: var(--paper-dim); }
+  .tile.quoted { border-color: var(--leaf); }
+  .tile.quoted .state { color: var(--leaf); }
+  .tile.declined, .tile.no_answer { opacity: .62; }
+  .tile.declined .state, .tile.failed .state { color: var(--kumkum); }
+  .tile.best { border: 2px solid var(--plate); background: var(--panel-2); }
+
+  /* The memorable thing: Indian commercial number plate */
+  .plate { display: inline-block; background: var(--plate); color: var(--ink); border: 2px solid var(--ink); border-radius: 6px; padding: 0 .45rem; font-weight: 800; font-size: .95rem; letter-spacing: .06em; box-shadow: 0 0 0 2px var(--plate); margin: 2px; width: fit-content; }
+
+  .dot { width: .65rem; height: .65rem; border-radius: 50%; background: var(--paper-dim); flex: none; }
+  .ringing .dot { background: var(--plate); animation: pulse 1s ease-in-out infinite; }
+  .talking .bars { display: inline-flex; gap: 2px; align-items: flex-end; height: 14px; }
+  .talking .bars i { width: 3px; background: var(--plate); animation: talk .9s ease-in-out infinite; }
+  .talking .bars i:nth-child(2) { animation-delay: .15s } .talking .bars i:nth-child(3) { animation-delay: .3s } .talking .bars i:nth-child(4) { animation-delay: .45s }
+  @keyframes pulse { 50% { transform: scale(1.6); opacity: .5; } }
+  @keyframes talk { 0%,100% { height: 3px } 50% { height: 14px } }
+  @media (prefers-reduced-motion: reduce) { .ringing .dot, .talking .bars i { animation: none; } .talking .bars i { height: 10px; } }
+
+  .empty { border: 1px dashed var(--line); border-radius: 12px; padding: 2rem; color: var(--paper-dim); max-width: 60ch; }
+
+  /* Shortlist */
+  .option { border-top: 1px solid var(--line); padding: .9rem 0; }
+  .option:first-of-type { border-top: 0; }
+  .option .head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+  .option .name { font-weight: 700; font-size: 1.05rem; }
+  .option .price { font-family: var(--display); font-size: 1.7rem; }
+  .option.first .price { font-size: 2.6rem; color: var(--plate); }
+  .option .meta { color: var(--paper-dim); font-size: .9rem; }
+  .book { margin-top: .5rem; background: transparent; color: var(--plate); border: 2px solid var(--plate); border-radius: 8px; padding: .35rem .9rem; font-weight: 800; cursor: pointer; }
+  .option.first .book { background: var(--plate); color: var(--ink); }
+  .booked { margin-top: .5rem; font-weight: 800; color: var(--leaf); }
+  .over { color: var(--kumkum); font-size: .85rem; font-weight: 700; }
+
+  .log { margin-top: 1.5rem; }
+  .log ol { list-style: none; padding: 0; margin: 0; font-size: .92rem; max-height: 260px; overflow: auto; }
+  .log li { padding: .3rem 0; border-bottom: 1px solid rgba(47,102,114,.5); display: grid; grid-template-columns: 3.2rem 1fr; gap: .5rem; }
+  .log time { color: var(--paper-dim); font-variant-numeric: tabular-nums; }
+
+  .banner { background: var(--plate); color: var(--ink); font-weight: 800; padding: .55rem 1.5rem; display: none; }
+  .banner.show { display: block; }
+
+  dialog { background: var(--panel); color: var(--paper); border: 1px solid var(--line); border-radius: 14px; max-width: 640px; width: 92vw; padding: 1.25rem 1.5rem; }
+  dialog::backdrop { background: rgba(8, 20, 24, .7); }
+  dialog pre { white-space: pre-wrap; font-family: var(--text); background: var(--body); padding: .8rem; border-radius: 8px; max-height: 50vh; overflow: auto; }
+  table.owners { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  table.owners td, table.owners th { text-align: left; padding: .3rem .4rem; border-bottom: 1px solid var(--line); }
+  table.owners th { color: var(--paper-dim); font-weight: 500; }
+  .row-form { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr .7fr; gap: .4rem; margin-top: .75rem; }
+  .row-form input, .row-form select { background: var(--body); color: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: .35rem .5rem; width: 100%; }
+
+  @media (max-width: 1100px) {
+    main.desk { grid-template-columns: 1fr; }
+    .col + .col { border-left: 0; border-top: 1px solid var(--line); }
+    .row-form { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="banner" id="banner" role="status"></div>
+<header class="bar">
+  <div class="brand">Bhaada<small>Freight desk</small></div>
+  <span class="clock" id="clock" aria-label="Time since the load was posted">0:00</span>
+  <div class="route" id="route"><span>No load yet</span></div>
+  <select class="ghost" id="loadPicker" aria-label="Switch load"></select>
+  <button class="ghost" id="ownersBtn" type="button">Truck owners</button>
+  <span class="mode" id="mode">…</span>
+</header>
+
+<main class="desk">
+  <section class="col" aria-labelledby="postTitle">
+    <h2 id="postTitle">Post a load</h2>
+    <form class="load" id="loadForm">
+      <div class="pair">
+        <div><label for="origin">From</label><input id="origin" name="origin" value="Lasalgaon" required></div>
+        <div><label for="destination">To</label><input id="destination" name="destination" value="Surat" required></div>
+      </div>
+      <label for="material">Material</label><input id="material" name="material" value="onion">
+      <div class="pair">
+        <div><label for="weight_tons">Weight (tonnes)</label><input id="weight_tons" name="weight_tons" type="number" step="0.5" value="20"></div>
+        <div><label for="truck_type">Truck type</label>
+          <select id="truck_type" name="truck_type"><option>open body</option><option>container</option><option>trailer</option><option value="any">any</option></select></div>
+      </div>
+      <label for="pickup_time">Loading time</label><input id="pickup_time" name="pickup_time" value="kal subah 7 baje">
+      <div class="pair">
+        <div><label for="target_rate">Good rate (₹)</label><input id="target_rate" name="target_rate" type="number" step="500" value="30000"></div>
+        <div><label for="max_rate">Highest you'll pay (₹)</label><input id="max_rate" name="max_rate" type="number" step="500" value="33000"></div>
+      </div>
+      <button class="go" id="goBtn" type="submit">Call truck owners</button>
+      <p class="hint">Bhaada never tells drivers your highest rate. It counters once, then records their final price.</p>
+    </form>
+  </section>
+
+  <section class="col" aria-labelledby="boardTitle">
+    <h2 id="boardTitle">Calls</h2>
+    <p class="story" id="story"></p>
+    <div class="board" id="board"></div>
+  </section>
+
+  <aside class="col" aria-labelledby="shortTitle">
+    <h2 id="shortTitle">Best options</h2>
+    <div id="shortlist"><p class="hint">Quotes rank here by price and by how soon the truck can reach the loading point.</p></div>
+    <div class="log"><h2>What happened</h2><ol id="log"></ol></div>
+  </aside>
+</main>
+
+<dialog id="callDialog" aria-labelledby="callTitle">
+  <h2 id="callTitle"></h2>
+  <div id="callMeta"></div>
+  <pre id="callTranscript"></pre>
+  <form method="dialog"><button class="ghost">Close</button></form>
+</dialog>
+
+<dialog id="ownersDialog" aria-labelledby="ownersTitle">
+  <h2 id="ownersTitle">Truck owners</h2>
+  <p class="hint">Only owners who agreed to receive load calls are listed. Owners who register through the phone line are added here automatically.</p>
+  <table class="owners"><thead><tr><th>Name</th><th>Phone</th><th>Base</th><th>Truck</th><th>Tonnes</th><th></th></tr></thead><tbody id="ownersBody"></tbody></table>
+  <form class="row-form" id="ownerForm">
+    <input name="name" placeholder="Name" required aria-label="Name">
+    <input name="phone" placeholder="+91 mobile" required aria-label="Mobile number">
+    <input name="city" placeholder="Base town" aria-label="Base town">
+    <select name="truck_type" aria-label="Truck type"><option>open body</option><option>container</option><option>trailer</option><option value="any">any</option></select>
+    <input name="capacity_tons" type="number" placeholder="Tonnes" aria-label="Capacity in tonnes">
+    <button class="ghost" type="submit">Add owner</button>
+  </form>
+  <form method="dialog" style="margin-top:1rem"><button class="ghost">Close</button></form>
+</dialog>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const rupee = (n) => n == null ? "—" : "₹" + Number(n).toLocaleString("en-IN");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let currentLoad = null, snap = null, refetchTimer = null;
+
+function mmss(sec) { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"); }
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail || ("Request failed: " + r.status));
+  return data;
+}
+
+async function init() {
+  const h = await api("/api/health");
+  const m = $("mode");
+  if (h.mode === "simulate") { m.textContent = "Simulation — calls are not real"; m.className = "mode sim"; }
+  else { m.textContent = h.live_ready ? "Live calls" : "Live — Bolna not configured"; m.className = "mode live"; }
+  await refreshLoads();
+  if (!currentLoad) renderEmpty();
+  const es = new EventSource("/api/stream");
+  es.onmessage = (e) => onPush(JSON.parse(e.data));
+  setInterval(tick, 1000);
+}
+
+async function refreshLoads() {
+  const loads = await api("/api/loads");
+  const p = $("loadPicker");
+  p.innerHTML = loads.length ? loads.map(l => `<option value="${l.id}">${esc(l.id)}: ${esc(l.origin)} to ${esc(l.destination)}</option>`).join("") : "<option>No loads yet</option>";
+  if (!currentLoad && loads.length) await openLoad(loads[0].id);
+  if (currentLoad) p.value = currentLoad;
+  return loads;
+}
+
+async function openLoad(id) { currentLoad = id; snap = await api("/api/loads/" + id); render(); $("loadPicker").value = id; }
+
+async function onPush(msg) {
+  if (msg.load_id && msg.load_id !== currentLoad) {
+    const loads = await refreshLoads();
+    const l = loads.find(x => x.id === msg.load_id);
+    if (l && l.source === "voice" && Date.now() / 1000 - l.created_at < 60 && l.status !== "booked") {
+      showBanner(`New load from a phone call: ${l.origin} to ${l.destination}`);
+      await openLoad(l.id);
+    }
+    return;
+  }
+  if (!msg.load_id && $("ownersDialog").open) loadOwners();
+  clearTimeout(refetchTimer);
+  refetchTimer = setTimeout(async () => { if (currentLoad) { snap = await api("/api/loads/" + currentLoad); render(); } }, 120);
+}
+
+function showBanner(text) { const b = $("banner"); b.textContent = text; b.classList.add("show"); setTimeout(() => b.classList.remove("show"), 8000); }
+
+function tick() {
+  if (!snap) return;
+  const L = snap.load;
+  const end = L.booked_at || L.shortlisted_at;
+  $("clock").textContent = mmss((end || Date.now() / 1000) - L.created_at);
+}
+
+function renderEmpty() {
+  $("board").innerHTML = `<div class="empty">Post a load and Bhaada phones every matching truck owner at the same time. Each quote appears here the moment a call ends.</div>`;
+  $("story").textContent = "";
+}
+
+function stateOf(c) {
+  if (c.outcome === "quoted") return { cls: "quoted", label: "Quoted" };
+  if (c.outcome === "declined") return { cls: "declined", label: "Not available" };
+  if (c.outcome === "no_answer") return { cls: "no_answer", label: "No answer" };
+  if (c.outcome === "failed") return { cls: "failed", label: "Call failed" };
+  const s = (c.call_status || "").toLowerCase();
+  if (s === "in-progress" || s === "call-disconnected") return { cls: "talking", label: "On the call" };
+  if (s === "ringing" || s === "initiated") return { cls: "ringing", label: "Ringing" };
+  return { cls: "queued", label: "Dialling" };
+}
+
+function render() {
+  if (!snap) return renderEmpty();
+  const { load: L, calls, ranked, events, metrics: M } = snap;
+  $("route").innerHTML = `${esc(L.origin)} to ${esc(L.destination)} <span>${esc(L.weight_tons)} t ${esc(L.material)}, ${esc(L.truck_type)}, ${esc(L.pickup_time)}</span>`;
+  tick();
+
+  // One sentence that tells the story to a judge in the back row
+  const parts = [`Bhaada called <b>${M.calls_placed}</b> truck owners at the same time.`];
+  if (M.seconds_to_first_quote != null) parts.push(`First quote arrived in <b>${mmss(M.seconds_to_first_quote)}</b>.`);
+  if (M.quotes) parts.push(`<b>${M.quotes}</b> quoted, best <b>${rupee(M.best_rate)}</b>` + (M.saved_vs_ceiling > 0 ? `, <b>${rupee(M.saved_vs_ceiling)}</b> under your highest rate.` : "."));
+  parts.push(`Dialling them one by one takes about <b>${M.manual_minutes_estimate} min</b> (estimate: ${M.manual_minutes_per_call} min a call).`);
+  $("story").innerHTML = parts.join(" ");
+
+  const bestId = ranked[0] && ranked[0].trucker_id;
+  const quoteCalls = calls.filter(c => c.kind === "quote");
+  $("board").innerHTML = quoteCalls.length ? quoteCalls.map(c => {
+    const st = stateOf(c);
+    const isBest = c.trucker_id === bestId && c.outcome === "quoted";
+    const rate = c.final_rate || c.quoted_rate;
+    let body = "";
+    if (c.outcome === "quoted") {
+      body = `<div class="rate">${rupee(rate)}</div>` +
+        (c.quoted_rate && c.final_rate && c.final_rate < c.quoted_rate ? `<div class="deal">Asked ${rupee(c.quoted_rate)}, settled lower</div>` : "") +
+        `<div class="deal">${c.truck_location ? "Truck at " + esc(c.truck_location) : ""}${c.eta_hours ? ", reaches in " + c.eta_hours + " h" : ""}</div>` +
+        (c.truck_number ? `<span class="plate">${esc(c.truck_number)}</span>` : "");
+    } else if (c.outcome === "declined") {
+      body = `<div class="deal">${esc(c.notes || "")}</div>`;
+    } else if (c.outcome === "failed") {
+      body = `<div class="deal">${esc(c.error || "")}</div>`;
+    }
+    const icon = st.cls === "talking" ? `<span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>` : `<span class="dot" aria-hidden="true"></span>`;
+    return `<button type="button" class="tile ${st.cls} ${isBest ? "best" : ""}" data-call="${c.id}">
+      <div class="who">${esc(c.trucker_name || c.trucker_id)}</div>
+      <div class="where">${esc(c.trucker_city || "")}, ${esc(c.trucker_truck_type || "")}</div>
+      ${body}
+      <div class="state">${icon}${L.booked_trucker_id === c.trucker_id ? "Booked" : (isBest ? "Best so far" : st.label)}</div>
+    </button>`;
+  }).join("") : `<div class="empty">No truck owners matched this load. Add owners with the right truck type and capacity.</div>`;
+  document.querySelectorAll(".tile[data-call]").forEach(el => el.onclick = () => openCall(el.dataset.call));
+
+  // Shortlist
+  const booked = L.status === "booked";
+  const rule = `<p class="hint">Ranked by price, counting each hour the truck needs to reach loading as ${rupee(M.eta_rupees_per_hour)}. Quotes above your highest rate go last.</p>`;
+  $("shortlist").innerHTML = ranked.length ? rule + ranked.slice(0, 3).map((r, i) => `
+    <div class="option ${i === 0 ? "first" : ""}">
+      <div class="head"><span class="name">${esc(r.trucker_name)}</span><span class="price">${rupee(r.rate)}</span></div>
+      <div class="meta">${r.truck_location ? "At " + esc(r.truck_location) : ""}${r.eta_hours ? ", reaches loading in " + r.eta_hours + " h" : ""}</div>
+      ${r.within_budget ? "" : `<div class="over">Above your highest rate</div>`}
+      ${booked ? (L.booked_trucker_id === r.trucker_id ? `<div class="booked">Booked</div>` : "")
+               : `<button class="book" type="button" data-tid="${r.trucker_id}">Book ${esc(r.trucker_name.split(" ")[0])}</button>`}
+    </div>`).join("") : `<p class="hint">Quotes rank here by price and by how soon the truck can reach the loading point.</p>`;
+  document.querySelectorAll(".book[data-tid]").forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = "Booking…";
+    await api(`/api/loads/${currentLoad}/book`, { method: "POST", body: JSON.stringify({ trucker_id: b.dataset.tid }) });
+  });
+
+  $("log").innerHTML = events.map(e => `<li><time>${mmss(e.ts - L.created_at)}</time><span>${esc(e.message)}</span></li>`).join("");
+}
+
+function openCall(id) {
+  const c = snap.calls.find(x => x.id === id);
+  if (!c) return;
+  $("callTitle").textContent = c.trucker_name || c.trucker_id;
+  $("callMeta").innerHTML = `<p class="hint">${esc(c.trucker_phone_masked || "")}. Status: ${esc(c.call_status)}. ${c.recording_url ? `<a href="${esc(c.recording_url)}" target="_blank" rel="noopener" style="color:var(--plate)">Play recording</a>` : ""}</p>`;
+  $("callTranscript").textContent = c.transcript || "The transcript appears when the call ends.";
+  $("callDialog").showModal();
+}
+
+async function loadOwners() {
+  const rows = await api("/api/truckers");
+  $("ownersBody").innerHTML = rows.map(t => `<tr><td>${esc(t.name)}</td><td>${esc(t.phone_masked)}</td><td>${esc(t.city)}</td><td>${esc(t.truck_type)}</td><td>${t.capacity_tons || ""}</td>
+    <td><button class="ghost" data-del="${t.id}" type="button" aria-label="Remove ${esc(t.name)}">Remove</button></td></tr>`).join("");
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => { await api("/api/truckers/" + b.dataset.del, { method: "DELETE" }); loadOwners(); });
+}
+
+$("ownersBtn").onclick = async () => { await loadOwners(); $("ownersDialog").showModal(); };
+$("ownerForm").onsubmit = async (e) => {
+  e.preventDefault();
+  await api("/api/truckers", { method: "POST", body: JSON.stringify(Object.fromEntries(new FormData(e.target))) });
+  e.target.reset(); loadOwners();
+};
+$("loadPicker").onchange = (e) => openLoad(e.target.value);
+$("loadForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = $("goBtn"); btn.disabled = true; btn.textContent = "Calling…";
+  try {
+    const res = await api("/api/loads", { method: "POST", body: JSON.stringify(Object.fromEntries(new FormData(e.target))) });
+    await refreshLoads(); await openLoad(res.load_id);
+  } catch (err) { showBanner(err.message); }
+  finally { btn.disabled = false; btn.textContent = "Call truck owners"; }
+};
+init().catch(err => showBanner("Could not reach the Bhaada server: " + err.message));
+</script>
+</body>
+</html>
